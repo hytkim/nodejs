@@ -10,8 +10,7 @@ const sum = (a, b) => a + b;
 
 const PI = 3.14;
 
-export { studentsAry, sum, PI };
-
-getStudentInfo = () => {
+const getStudentInfo = () => {
   return ["rmaG", "TETO-Nam", "e-GenNam", "TT"];
 };
+export { studentsAry, sum, PI, getStudentInfo };

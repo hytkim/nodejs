@@ -1,3 +1,4 @@
 # d: dev\git\nodejs\express> npm install express로 설치했으나, 
 # 설치되었던 내역이 packge.json의 dependencies에서 관리되고있으니 npm install만 해도된다.
 node_modules
+uploads/*

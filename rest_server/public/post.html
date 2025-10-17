@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>post</title>
+  </head>
+  <body>
+    <button onclick="post_register()">등록(post 요청)</button>
+    <button onclick="put_modify()">수정(put 요청)</button>
+    <button onclick="delete_remove()">삭제(delete 요청)</button>
+    <script>
+      const fetchUrl = "http://localhost:3000";
+      //POST요청은 반드시 헤더스와 바디가 필요함, 그리고 헤더에 컨텐츠타입을포함해야되는데 app/json포맷으로간다
+      // http://localhost:3000 << url,  /posts << uri
+      // Resource(URL vs URI) + Method(Post) => Restful API
+      post_register = () => {
+        fetch(fetchUrl + "/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: 3,
+            title: "post test3",
+            content: "post content3",
+          }),
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            //서버에서 반환받은 json타입 데이터를
+            console.log(json);
+            alert("등록 되었습니다.");
+          })
+          .catch((err) => {
+            console.log("Error: ", err);
+          });
+      };
+      put_modify = () => {
+        fetch(fetchUrl + "/posts/3", {
+          method: "PUT",
+          headers: {
+            "Contert-Type": "application/json; charset=UFT-8",
+          },
+          body: JSON.stringify({
+            title: "3번글 수정",
+            content: "3번글 내용 수정",
+            id: 3,
+          }),
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            console.log(json);
+            alert("수정되었습니다.");
+          })
+          .catch((err) => console.log(err));
+      };
+      delete_remove = () => {
+        fetch(fetchUrl + "/posts/3", { method: "DELETE" })
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((err) => console.log(err));
+      };
+    </script>
+  </body>
+</html>

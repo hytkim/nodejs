@@ -33,6 +33,7 @@ getCryptoPassword = async (password) => {
         return;
       }
       // console.log("success key: ", key.toString("base64"));
+      console.log(key.toString("base64"));
       resolve(dbPass == key.toString("base64"));
     });
   });

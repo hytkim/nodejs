@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sign-up</title>
+  </head>
+  <body>
+    <h3>아이디 & 전화번호 입력 시 새 비번 발급</h3>
+    <form action="signup" method="post">
+      <label for="name">이름: </label> <br />
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="ssalsoongyee"
+        required
+      /><br />
+      <label for="password">비밀번호: </label> <br />
+      <input
+        type="text"
+        id="password"
+        name="password"
+        value="7777"
+        required
+      /><br />
+      <label for="email">eamil: </label><br />
+      <input
+        type="text"
+        id="email"
+        name="email"
+        value="test@email.com"
+        required
+      /><br />
+      <label for="phone">phone: </label><br />
+      <input
+        type="text"
+        id="phone"
+        name="phone"
+        value="010-0000-0000"
+        required
+      /><br />
+      <input type="submit" value="회원가입" />
+    </form>
+    <br /><br /><br /><br />
+    <form action="signin" method="post">
+      <label for="emailin">eamil: </label><br />
+      <input
+        type="text"
+        id="emailin"
+        name="emailin"
+        value="test@email.com"
+        required
+      /><br />
+
+      <label for="passwordin">비밀번호: </label> <br />
+      <input
+        type="text"
+        id="passwordin"
+        name="passwordin"
+        value="7777"
+        required
+      /><br />
+
+      <input type="submit" value="로그인" />
+    </form>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5th > public > excel_upload</title>
+  </head>
+  <body>
+    <h3>엑셀 업로드</h3>
+    <form action="/upload/excels" method="post" enctype="multipart/form-data">
+      <input
+        type="file"
+        name="excelFile"
+        accept=".xml, .xlsx"
+        multiple
+        readonly
+      />
+      <button type="submit">업로드</button>
+    </form>
+
+    <!-- <h3>이미지 업로드</h3>
+    <form action="/upload/images" method="post" enctype="multipart/form-data">
+      <input type="file" name="imageFile" multiple readonly />
+      <button type="submit">업로드</button>
+    </form> -->
+  </body>
+</html>

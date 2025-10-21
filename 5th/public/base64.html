@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5th > public > base64.html</title>
+  </head>
+  <body>
+    <h3>이미지 업로드</h3>
+    <form
+      action="/upload/:productId/:type/:fileName"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      상품번호:
+      <input type="text" name="product_id" value="100" /> <br />
+      <!--상품명, 가격 ....-->
+      이미지타입:
+      <input type="text" name="image_type" value="1" /> <br />
+      <input type="file" name="imageFile" accept=".jpg, .jpeg, .png" multiple />
+      <button type="submit">상품등록</button>
+    </form>
+    <script>
+      document
+        .querySelector('input[type="file"]')
+        .addEventListener("change", (e) => {
+          // console.log(e);
+          // console.log(e.target.files[0]);
+          const file = e.target.files[0];
+          console.log("file: ", file);
+
+          const pid = document.querySelector('input[name="product_id"]').value;
+          const ptpye = document.querySelector(
+            'input[name="image_type"]'
+          ).value;
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            //console.log(e.target.result); // base64 문자열 출력
+            fetch(`/upload/${pid}/${ptpye}/${file.name}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ imagebase64: e.target.result }),
+            })
+              .then((response) => response.text())
+              .then((data) => {
+                console.log("data:", data);
+              })
+              .catch((err) => console.log(err));
+          };
+          reader.readAsDataURL(file);
+        });
+    </script>
+  </body>
+</html>

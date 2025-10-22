@@ -1,12 +1,26 @@
 const express = require("express");
 const mysql = require("./sql");
 const xlsx = require("./index");
+const reqxlsx = require("xlsx");
 const fs = require("fs");
 const multer = require("multer");
+const nodemailer = require("nodemailer");
+const cron = require(`node-cron`);
 
 const app = express();
 const url = "http://localhost:";
 port = 3000;
+const transporter = nodemailer.createTransport({
+  // Daum 메일 SMTP 서버 정보
+  host: "smtp.daum.net",
+  port: 465,
+  secure: true, // 465번 포트는 SSL을 사용하므로 true로 설정
+  auth: {
+    // 본인의 Daum(또는 Hanmail) 계정 정보
+    user: "red_jerry7@daum.net",
+    pass: "hpfxrkekjxqipfqc", // 비밀번호 또는 앱 비밀번호
+  },
+});
 
 // 전송될 데이터 형식 처리하는거
 app.use(
@@ -61,6 +75,95 @@ app.post("/upload/excels", upload.array("excelFile", 100), async (req, res) => {
   //읽어온 파일은 위에 upload.array에서 처리했고 멀티파트했으니까 이제 받아온걸로 DB슛하면됨
   await xlsx.excel_to_db(req.files[0].path);
   res.send(req.files[0].path);
+});
+app.get("/cron/start", (req, res) => {
+  let result_text = "";
+  mysql
+    .queryExecute("select * from customers", [])
+    .then((sqlData) => {
+      sqlData.forEach((element) => {
+        let { id, name, email, phone, address } = element;
+        result_text += `${id}/${name}/${email}/${phone}/${address || "null"}\n`;
+      });
+
+      const data = {
+        from: "red_jerry7@daum.net",
+        to: "red_jerry7@daum.net",
+        subject: "긴빠이 레스고",
+        html: "sample content",
+        text: "1235",
+        attachments: [
+          {
+            filename: "고객정보긴빠이_info.txt",
+            content: result_text,
+          },
+        ],
+      };
+      transporter.sendMail(data, (err, info) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Email 전송에 실패했습니다.");
+        } else {
+          console.log(info);
+          return res.send("Email send successfully");
+        }
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).send("DB 조회 중 오류가 발생했습니다.");
+    });
+});
+
+// customer table select  => excel file로 변환 => email 전송할때 첨부파일로 사용
+// 'customerInfo' get
+app.get("/customerInfo", (req, res) => {
+  mysql
+    .queryExecute("select * from customers", [])
+    .then((sqlData) => {
+      // console.log(sqlData);
+      const workbook = reqxlsx.utils.book_new();
+      // 헤더라는속성에 내가 가져온값들을 붙일수있다???
+      const firstSheet = reqxlsx.utils.json_to_sheet(sqlData, {
+        header: ["id", "name", "email", "phone", "address"],
+      });
+      reqxlsx.utils.book_append_sheet(workbook, firstSheet, "customers"); // workbook에 sheet 추가(sheet이름: "customers")
+
+      const excelBuffer = reqxlsx.write(workbook, {
+        bookType: "xlsx",
+        type: "buffer",
+      });
+
+      const data = {
+        from: "red_jerry7@daum.net",
+        to: "red_jerry7@daum.net",
+        subject: "이걸로 엑셀파일을 전송하다니 너무신기해",
+        html: "sample content",
+        text: "1235",
+        attachments: [
+          {
+            filename: "customers_info.xlsx",
+            content: excelBuffer,
+            contentType:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          },
+        ],
+      };
+      transporter.sendMail(data, (err, info) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Email 전송에 실패했습니다.");
+        } else {
+          console.log(info);
+          res.send("Email send successfully");
+          return res.send("Email send successfully");
+        }
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).send("DB 조회 중 오류가 발생했습니다.");
+    });
 });
 
 app.listen(port, () => {
@@ -149,3 +252,38 @@ app.post("/upload/:productId/:type/:fileName", (req, res) => {
 //     return res.status(500).send("오류");
 //   }
 // });
+
+const rog = cron.schedule(
+  "*/1 * * * * *",
+  () => {
+    console.log(`link start`);
+  },
+  { scheduled: false }
+);
+rog.stop();
+app.get("/cron/start", (req, res) => {
+  rog.start();
+});
+app.get("/cron/stop", (req, res) => {
+  rog.stop();
+});
+
+a = () => {
+  let result_text = "";
+  mysql
+    .queryExecute("select id,name,email,phone,address cnt from customers", [])
+    .then((response) => response)
+    .then((data) => {
+      // console.log(`data: `, data);
+      data.forEach((element) => {
+        let { id, name, email, phone, address } = element;
+        result_text += `${id}/${name}/${email}/${phone}/${
+          !address ? "null" : address
+        }\n`;
+      });
+      console.log(result_text);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};

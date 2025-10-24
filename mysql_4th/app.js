@@ -3,6 +3,7 @@ const express = require("express");
 const mysql = require("./sql/index");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const cors = require("cors");
 
 // 기본 값 세팅
 const url = "http://localhost:";
@@ -23,6 +24,7 @@ const transporter = nodemailer.createTransport({
 // middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 // 정적디렉토리 설정
 app.use(express.static("public"));

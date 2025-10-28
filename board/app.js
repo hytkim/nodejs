@@ -2,9 +2,11 @@
 const express = require("express");
 const mysql = require("./sql/index");
 const cors = require("cors");
+const crypto = require("crypto"); // ❗ 이 줄을 추가하세요
 
 // 기본 값 세팅
-const url = "http://localhost:";
+// const url = "http://localhost:";
+const url = "http:192.168.0.15:";
 const app = express();
 const port = 3000;
 
@@ -67,7 +69,8 @@ app.post("/signin", async (req, res) => {
   console.log(signinData);
 
   let result = await mysql.queryExecute(
-    "select password_hash, password_salt from customers where email = ?",
+    // "select password_hash, password_salt from customers where email = ?",
+    "select id, password_hash, password_salt from customers where email = ?",
     [signinData.email]
   );
   console.log("SQL Execute: ", result);
@@ -94,14 +97,19 @@ app.post("/signin", async (req, res) => {
 
   if (bool) {
     // res.send("로긴각이네 로긴각");
-    res.send(
-      `<script>alert('로그인 성공 했습니다.'); history.back();</script>`
+    // res.send(`<script>alert('로그인 성공 했습니다.'); history.back();</script>`);
+    // res.json({ success: true, user: result[0] });
+    let safeUserResult = await mysql.queryExecute(
+      "select id, name, email, phone, address, isAdmin from customers where id = ?",
+      [result[0].id] // 검증된 사용자의 id
     );
+
+    // ❗ [핵심 추가] 조회한 결과를 '반드시' res.json()으로 응답해야 합니다.
+    res.json({ success: true, user: safeUserResult[0] });
   } else {
     // res.send("다시해라 애송이");
-    res.send(
-      `<script>alert('로그인 실패 했습니다.'); history.back();</script>`
-    );
+    // res.send(`<script>alert('로그인 실패 했습니다.'); history.back();</script>`);
+    res.json({ success: false, message: "비밀번호가 틀렸습니다." });
   }
 });
 
@@ -162,6 +170,77 @@ app.delete("/board/:id", async (req, res) => {
     id,
   ]);
   res.send(result);
+});
+
+// 1. (R) 특정 게시글의 모든 댓글 조회 (GET /board/:id/replies)
+app.get("/board/:id/replies", async (req, res) => {
+  const board_id = req.params.id; // ❗ 게시글의 id
+
+  try {
+    let result = await mysql.queryExecute(
+      "SELECT * FROM tbl_reply WHERE board_id = ?",
+      [board_id]
+    );
+    res.json(result); // 조회된 댓글 배열 반환
+  } catch (err) {
+    console.error("댓글 조회 실패:", err);
+    res.status(500).json({ message: "댓글 조회 중 오류 발생" });
+  }
+});
+
+// 2. (C) 새 댓글 작성 (POST /reply)
+app.post("/reply", async (req, res) => {
+  // ❗ 프론트에서 { content, board_id, writer }를 params로 보내야 함
+  const replyData = req.body.params;
+  console.log("새 댓글 데이터:", replyData);
+
+  try {
+    let result = await mysql.queryExecute(
+      "INSERT INTO tbl_reply SET ?",
+      replyData
+    );
+    res.json(result); // OkPacket (insertId 포함) 반환
+  } catch (err) {
+    console.error("댓글 작성 실패:", err);
+    res.status(500).json({ message: "댓글 작성 중 오류 발생" });
+  }
+});
+
+// 3. 댓글 수정 기능
+app.put("/reply", async (req, res) => {
+  const { id, ...parmas } = req.body;
+
+  try {
+    let result = await mysql.queryExecute(
+      "UPDATE tbl_reply SET ? where id = ?",
+      [parmas, id]
+    );
+    res.json({ message: "성공적으로 댓글이 수정되었습니다." });
+  } catch (err) {
+    console.error("삭제 실패: ", err);
+    return res.status(500).json({ message: "댓글 수정 중 오류 발생" });
+  }
+});
+
+// 4. 댓글 삭제 기능
+app.delete("/reply/:id", async (req, res) => {
+  const reply_id = req.params.id;
+  const { id, writer } = req.body;
+  if (reply_id != id) {
+    // 400 Bad Request: 클라이언트가 데이터를 잘못 보냄
+    return res.status(400).json({ message: "id 정보가 일치하지 않습니다." });
+  }
+
+  try {
+    let result = await mysql.queryExecute(
+      "DELETE FROM tbl_reply WHERE id = ? AND writer = ?",
+      [id, writer]
+    );
+    res.json({ message: "성공적으로 댓글이 삭제되었습니다." });
+  } catch (err) {
+    console.error("삭제 실패: ", err);
+    return res.status(500).json({ message: "댓글 삭제 중 오류 발생" });
+  }
 });
 
 // 서버 시작
